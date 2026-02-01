@@ -3,7 +3,8 @@ import os
 import numpy as np
 from PIL import Image
 
-from dash import Dash, dcc, html, Input, Output, State, callback_context
+from dash import Dash, dcc, html, Input, Output, State
+from dash import callback_context
 import plotly.graph_objects as go
 
 
@@ -1007,4 +1008,5 @@ if __name__ == "__main__":
         #for fam, p in family_map.items():
             #print(f" - {fam}: {p}")
         app.run(debug=False)
+
 
