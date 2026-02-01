@@ -1,19 +1,16 @@
 # app.py
 import os
-import re
 import numpy as np
 from PIL import Image
-import random
 
-from dash import Dash, dcc, html, Input, Output, State
+from dash import Dash, dcc, html, Input, Output, State, callback_context
 import plotly.graph_objects as go
-from dash import no_update, callback_context
 
 
 # ----------------------------
 # Config
 # ----------------------------
-ROOT_DIR = "C:/Fabri/moforlogia_descriptiva/3d_models"  # cambia esto si tu carpeta está en otro lado
+ROOT_DIR = os.environ.get("INSECT_MODELS_DIR", "./3d_models")
 
 # “familias” lógicas (para tu narrativa de 4)
 # Cada entry busca por substring en el nombre del archivo .obj
@@ -286,15 +283,15 @@ def parse_mtl_maps(obj_path: str, mtl_path: str):
     if not mtl_path or not os.path.exists(mtl_path):
         return {}
 
-    print("[DEBUG] --- MTL texture lines ---")
-    with open(mtl_path, "r", encoding="utf-8", errors="ignore") as f:
-        for line in f:
-            low = line.lower()
-            if "map_" in low or "adobe_map_" in low or "bump" in low:
-                print("[DEBUG]", line.strip())
-            if low.startswith("kd "):
-                print("[DEBUG]", line.strip())
-    print("[DEBUG] ------------------------")
+    #print("[DEBUG] --- MTL texture lines ---")
+    #with open(mtl_path, "r", encoding="utf-8", errors="ignore") as f:
+        #for line in f:
+            #low = line.lower()
+            #if "map_" in low or "adobe_map_" in low or "bump" in low:
+                #print("[DEBUG]", line.strip())
+            #if low.startswith("kd "):
+                #print("[DEBUG]", line.strip())
+    #print("[DEBUG] ------------------------")
 
     
 
@@ -477,22 +474,20 @@ def load_obj_mesh_uv_facecolors(obj_path: str):
         raise ValueError(f"Empty mesh from OBJ: {obj_path}")
     
     if len(face_uv) == 0:
-        print("[DEBUG] UV stats: NO UVs found")
+        #print("[DEBUG] UV stats: NO UVs found")
+        pass
     else:
         uv = np.array(face_uv, dtype=np.float32)
 
-        print("[DEBUG] UV stats:")
-        print("  count:", len(uv))
-        print("  u min/max:", float(np.min(uv[:,0])), float(np.max(uv[:,0])))
-        print("  v min/max:", float(np.min(uv[:,1])), float(np.max(uv[:,1])))
-        print("  % in [0,1] u:", float(np.mean((uv[:,0] >= 0) & (uv[:,0] <= 1))) )
-        print("  % in [0,1] v:", float(np.mean((uv[:,1] >= 0) & (uv[:,1] <= 1))) )
-        print("  first10:", uv[:10])
+        #print("  count:", len(uv))
+        #print("  u min/max:", float(np.min(uv[:,0])), float(np.max(uv[:,0])))
+        #print("  v min/max:", float(np.min(uv[:,1])), float(np.max(uv[:,1])))
+        #print("  % in [0,1] u:", float(np.mean((uv[:,0] >= 0) & (uv[:,0] <= 1))) )
+        #print("  % in [0,1] v:", float(np.mean((uv[:,1] >= 0) & (uv[:,1] <= 1))) )
+        #print("  first10:", uv[:10])
 
     return V, F, face_mtl, np.asarray(face_uv, dtype=np.float32)
 
-
-import numpy as np
 
 def sample_facecolors_from_textures(
     face_mtl,
@@ -729,10 +724,10 @@ def debug_materials(obj_path: str):
             if line.lower().startswith("usemtl "):
                 used.add(line.split(None, 1)[1].strip())
 
-    print("\n[DEBUG] OBJ:", obj_path)
-    print("[DEBUG] MTL:", mtl_path)
-    print("[DEBUG] usemtl in OBJ:", sorted(used))
-    print("[DEBUG] newmtl in MTL:", sorted(mtl_mats))
+    #print("\n[DEBUG] OBJ:", obj_path)
+    #print("[DEBUG] MTL:", mtl_path)
+    #print("[DEBUG] usemtl in OBJ:", sorted(used))
+    #print("[DEBUG] newmtl in MTL:", sorted(mtl_mats))
     missing = used - mtl_mats
     if missing:
         print("[DEBUG] WARNING: these usemtl are missing in MTL:", sorted(missing))
@@ -849,7 +844,7 @@ app.layout = html.Div(
                             style={"width": "420px"},
                         ),
 
-                        # ✅ AGREGÁ ESTO ACÁ (debajo del path-label)
+                        # Store camera state between interactions
                         dcc.Store(id="camera-store", data=None),
 
                         
@@ -970,7 +965,7 @@ def update_graph(family, relayoutData, cache, camera_store):
     Vn = normalize_vertices(V)
 
     mtl_path = find_mtl_for_obj(path)
-    print("[DEBUG] mtl_path:", mtl_path)
+    #print("[DEBUG] mtl_path:", mtl_path)
 
     mtl_maps = parse_mtl_maps(path, mtl_path)
 
@@ -1006,9 +1001,10 @@ def update_graph(family, relayoutData, cache, camera_store):
 if __name__ == "__main__":
     if not os.path.isdir(ROOT_DIR):
         print(f"[ERROR] ROOT_DIR not found: {ROOT_DIR}")
-        print("Edit ROOT_DIR in app.py to match your folder path.")
+        print('Set INSECT_MODELS_DIR to your folder path (or place models in "./3d_models").')
     else:
         print("Detected OBJ models:")
-        for fam, p in family_map.items():
-            print(f" - {fam}: {p}")
+        #for fam, p in family_map.items():
+            #print(f" - {fam}: {p}")
         app.run(debug=False)
+
